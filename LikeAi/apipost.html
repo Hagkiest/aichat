@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 流式请求调试</title>
+    <style>
+        #messages-container {
+            border: 1px solid #ddd;
+            padding: 10px;
+            margin-top: 10px;
+            height: 300px;
+            overflow-y: auto;
+        }
+        .message-box {
+            padding: 5px;
+            margin: 5px 0;
+        }
+        .user {
+            background-color: #f0f0f0;
+            text-align: right;
+        }
+        .ai {
+            background-color: #e0f7fa;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>与 AI 对话</h1>
+    <textarea id="inputBox" placeholder="输入消息..." rows="4" cols="50"></textarea>
+    <br>
+    <button id="sendButton">发送</button>
+
+    <div id="messages-container"></div>
+
+    <script>
+        let currentConversation = Date.now().toString(); // 使用当前时间戳作为唯一会话 ID
+
+        // 添加消息到 UI
+        function addMessageToUI(type, text) {
+            const messageBox = document.createElement('div');
+            messageBox.classList.add('message-box');
+            if (type === 'ai') {
+                messageBox.classList.add('ai');
+            } else if (type === 'user') {
+                messageBox.classList.add('user');
+            }
+            messageBox.textContent = text;
+            document.getElementById('messages-container').appendChild(messageBox);
+            // 保持显示在视图内
+            document.getElementById('messages-container').scrollTop = document.getElementById('messages-container').scrollHeight;
+        }
+
+        // 发送消息
+        async function sendMessage() {
+            const inputBox = document.getElementById('inputBox');
+            const text = inputBox.value.trim();
+
+            if (!text) return;
+
+            // 添加用户消息到 UI
+            addMessageToUI('user', text);
+
+            // 发送流式请求到后端获取 AI 回复
+            try {
+                const response = await fetch('https://spark-api-open.xf-yun.com/v1/chat/completions', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer fhjXaCsmBduoQHEWasvW:RUkiuTCkAjvfkMLryqVT', // 替换为你的 API 密钥
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        model: "lite", // 模型选择
+                        messages: [{ role: "user", content: text }],
+                        stream: true // 启用流式处理
+                    })
+                });
+
+                if (response.ok) {
+                    const reader = response.body.getReader();
+                    const decoder = new TextDecoder();
+                    let done = false;
+                    let aiReply = '';
+
+                    // 流式处理每一行响应
+                    while (!done) {
+                        const { value, done: readerDone } = await reader.read();
+                        done = readerDone;
+                        aiReply += decoder.decode(value, { stream: true });
+
+                        // 添加 AI 回复到 UI
+                        addMessageToUI('ai', aiReply);
+                    }
+                } else {
+                    console.error('Error: Failed to get response from AI.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+        // 绑定发送按钮的点击事件
+        document.getElementById('sendButton').addEventListener('click', sendMessage);
+    </script>
+
+</body>
+</html>

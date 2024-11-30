@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Chat App</title>
+<link rel="stylesheet" href="/css/index.css">
+</head>
+<body>
+<div class="sidebar">
+    <button class="new-conversation" onclick="createNewConversation()">开启新对话</button>
+    <hr class="divider">
+    <div class="conversation-list">
+        <!-- 会话按钮动态添加 -->
+    </div>
+</div>
+<div class="main">
+    <div id="messages-container">
+        <div id="placeholder-text" class="typewriter"></div>
+    </div>
+    <div class="input-container">
+        <input type="text" id="inputBox" placeholder="请输入文字..." oninput="toggleButtonImage()" disabled>
+        <button id="sendButton" onclick="sendMessage()" disabled>
+            <img id="buttonImage" src="inputkuang0.png" alt="Send">
+        </button>
+    </div>
+</div>
+<script src="/js/index.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+</body>
+</html>
